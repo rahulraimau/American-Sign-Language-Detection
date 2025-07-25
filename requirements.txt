@@ -1,7 +1,7 @@
-tensorflow==2.16.1   # Or 2.19.0 if you want to try the very latest
+tensorflow==2.16.1
 Flask==2.2.5
-opencv-python==4.12.0.88 # Corrected version
-numpy==1.23.5        # Or 1.26.4
+opencv-python==4.9.0.80 # Downgrade to a version that should still work with NumPy 1.x
+numpy==1.23.5        # Sticking with this for TF compatibility
 streamlit==1.36.0
 requests
 Pillow==10.4.0
