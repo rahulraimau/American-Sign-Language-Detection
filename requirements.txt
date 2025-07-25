@@ -1,4 +1,7 @@
-Flask
-tensorflow
-numpy
-opencv-python
+tensorflow-cpu==2.15.0
+numpy==1.23.5
+opencv-python==4.8.0.76
+Flask==2.2.5
+streamlit==1.27.2
+requests
+Pillow
