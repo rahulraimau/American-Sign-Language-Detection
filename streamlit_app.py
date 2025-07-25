@@ -1,52 +1,33 @@
 import streamlit as st
-import cv2
-import numpy as np
-import tensorflow as tf
+import requests
 from PIL import Image
+import io
 
-# Load the trained model
-@st.cache_resource
-def load_model():
-    model = tf.keras.models.load_model('asl_classifier_model.h5')
-    return model
+st.set_page_config(page_title="ASL Sign Classifier", layout="centered")
 
-model = load_model()
+st.title("🧠 American Sign Language (ASL) Classifier")
+st.write("Upload an image or use your webcam to classify ASL signs.")
 
-# Define categories (must match the order used during training)
-categories = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'del', 'nothing', 'space']
-IMG_SIZE = 64
+API_URL = "https://american-sign-language-detection-4ylu.onrender.com/predict"
 
-st.title("ASL Sign Language Classifier")
-st.write("Upload an image of an ASL sign and the model will predict the letter.")
+# File uploader
+uploaded_file = st.file_uploader("📤 Upload an Image", type=["jpg", "jpeg", "png"])
 
-uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
+# Webcam capture
+capture = st.camera_input("📷 Or take a picture")
 
-if uploaded_file is not None:
-    # Display the uploaded image
-    image = Image.open(uploaded_file).convert("RGB")
-    st.image(image, caption='Uploaded Image.', use_column_width=True)
-    st.write("")
-    st.write("Classifying...")
+img_data = None
+if uploaded_file:
+    img_data = uploaded_file.read()
+elif capture:
+    img_data = capture.getvalue()
 
-    # Preprocess the image for the model
-    opencv_image = np.array(image)
-    opencv_image = cv2.cvtColor(opencv_image, cv2.COLOR_RGB2BGR) # Convert PIL RGB to OpenCV BGR
-
-    img_resized = cv2.resize(opencv_image, (IMG_SIZE, IMG_SIZE))
-    img_normalized = img_resized / 255.0
-    img_input = np.expand_dims(img_normalized, axis=0) # Add batch dimension
-
-    # Make prediction
-    predictions = model.predict(img_input)
-    predicted_class_index = np.argmax(predictions)
-    predicted_label = categories[predicted_class_index]
-    confidence = np.max(predictions)
-
-    st.success(f"Prediction: **{predicted_label}** with {confidence*100:.2f}% confidence.")
-
-    st.subheader("All Class Probabilities:")
-    prob_df = pd.DataFrame({
-        'Class': categories,
-        'Probability': predictions[0]
-    }).sort_values(by='Probability', ascending=False).reset_index(drop=True)
-    st.dataframe(prob_df)
+if img_data:
+    st.image(Image.open(io.BytesIO(img_data)), caption="Preview", use_column_width=True)
+    with st.spinner("Classifying..."):
+        response = requests.post(API_URL, files={"file": ("image.jpg", img_data, "image/jpeg")})
+        if response.status_code == 200:
+            prediction = response.json().get("prediction", "Unknown")
+            st.success(f"🧾 Predicted Sign: **{prediction}**")
+        else:
+            st.error("❌ Failed to get prediction from the API.")
