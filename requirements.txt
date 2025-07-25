@@ -4,5 +4,5 @@ opencv-python==4.12.0.88 # Corrected version
 numpy==1.23.5        # Or 1.26.4
 streamlit==1.36.0
 requests
-Pillow==9.9.0
+Pillow==10.4.0
 pandas==2.2.2
